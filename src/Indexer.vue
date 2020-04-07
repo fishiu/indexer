@@ -60,52 +60,55 @@
                             </el-radio-group>
                         </el-form-item>
                         <el-form-item label="角色">
-                            <el-input id="chosenOne" v-model="roleInput" @keyup.enter.native="addRoleTag()"
-                                      class="input-short" prefix-icon="el-icon-s-custom"></el-input>
-                                <el-tag
-                                        v-for="roleTag in form.role"
-                                        :key="roleTag"
-                                        closable
-                                        disable-transitions=false
-                                        @close="closeTag(roleTag,1)"
-                                >{{roleTag}}
-                                </el-tag>
+                            <el-autocomplete id="chosenOne" v-model="roleInput" @keyup.enter.native="addRoleTag()"
+                                             class="input-short" prefix-icon="el-icon-s-custom"
+                                             :fetch-suggestions="querySearch"
+                                             @select="addRoleTag"
+                            ></el-autocomplete>
+                            <el-tag
+                                    v-for="roleTag in form.role"
+                                    :key="roleTag"
+                                    closable
+                                    disable-transitions=false
+                                    @close="closeTag(roleTag,1)"
+                            >{{roleTag}}
+                            </el-tag>
                         </el-form-item>
                         <el-form-item label="情绪">
                             <el-input v-model="emotionInput" @keyup.enter.native="addEmotionTag()"
                                       class="input-short" prefix-icon="el-icon-magic-stick"></el-input>
-                                <el-tag
-                                        v-for="emotionTag in form.emotion"
-                                        :key="emotionTag"
-                                        closable
-                                        disable-transitions=false
-                                        @close="closeTag(emotionTag, 2)"
-                                >{{emotionTag}}
-                                </el-tag>
+                            <el-tag
+                                    v-for="emotionTag in form.emotion"
+                                    :key="emotionTag"
+                                    closable
+                                    disable-transitions=false
+                                    @close="closeTag(emotionTag, 2)"
+                            >{{emotionTag}}
+                            </el-tag>
                         </el-form-item>
                         <el-form-item label="风格">
                             <el-input v-model="styleInput" @keyup.enter.native="addStyleTag()"
                                       class="input-short" prefix-icon="el-icon-lollipop"></el-input>
-                                <el-tag
-                                        v-for="styleTag in form.style"
-                                        :key="styleTag"
-                                        closable
-                                        disable-transitions=false
-                                        @close="closeTag(styleTag, 3)"
-                                >{{styleTag}}
-                                </el-tag>
+                            <el-tag
+                                    v-for="styleTag in form.style"
+                                    :key="styleTag"
+                                    closable
+                                    disable-transitions=false
+                                    @close="closeTag(styleTag, 3)"
+                            >{{styleTag}}
+                            </el-tag>
                         </el-form-item>
                         <el-form-item label="主题">
                             <el-input v-model="topicInput" @keyup.enter.native="addTopicTag()"
                                       class="input-short" prefix-icon="el-icon-s-flag"></el-input>
-                                <el-tag
-                                        v-for="topicTag in form.topic"
-                                        :key="topicTag"
-                                        closable
-                                        disable-transitions=false
-                                        @close="closeTag(topicTag, 4)"
-                                >{{topicTag}}
-                                </el-tag>
+                            <el-tag
+                                    v-for="topicTag in form.topic"
+                                    :key="topicTag"
+                                    closable
+                                    disable-transitions=false
+                                    @close="closeTag(topicTag, 4)"
+                            >{{topicTag}}
+                            </el-tag>
                         </el-form-item>
                         <el-form-item label="描述">
                             <el-input type="textarea" v-model="form.description"></el-input>
@@ -138,17 +141,24 @@
                 form: {
                     name: '请选择图片',
                     textCat: '图文结合',
-                    role: ['熊猫头', '黄脸'],
-                    emotion: ['开心', '悲伤'],
-                    style: ['洒脱', '奔放'],
-                    topic: ['怼人', '打你'],
-                    description: '这是一个表情包这是一个表情包'
+                    role: ['熊猫头'],
+                    emotion: ['开心'],
+                    style: ['洒脱'],
+                    topic: ['怼人'],
+                    description: '别复习了一起去玩吧'
                 },
                 helpInfoVisible: false,
                 roleInput: '',
                 emotionInput: '',
                 styleInput: '',
-                topicInput: ''
+                topicInput: '',
+                ac: {
+                    roles: [
+                        {value: '猫和老鼠'},
+                        {value: '熊猫头'},
+                        {value: '黄脸'}
+                    ]
+                }
             };
         },
         computed: {
@@ -264,6 +274,16 @@
                 this.form.style = [];
                 this.form.topic = [];
                 this.form.description = '';
+            },
+            createFilter(queryString) {
+                return (role) => {
+                    return (role.value.toLowerCase().indexOf(queryString.toLowerCase()) === 0);
+                };
+            },
+            querySearch(queryString, cb) {
+                let roles = this.ac.roles;
+                let res = queryString ? roles.filter(this.createFilter((queryString))) : roles;
+                cb(res);
             }
         },
         directives: {
@@ -273,8 +293,8 @@
                 }
             }
         },
-        mounted(){
-            let chosenOne=document.getElementById('chosenOne')
+        mounted() {
+            let chosenOne = document.getElementById('chosenOne')
             chosenOne.focus()
         }
     }
