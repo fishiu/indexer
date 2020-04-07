@@ -171,7 +171,18 @@
         },
         methods: {
             submit() {
-                alert(this.form.textCat);
+                this.$axios({
+                    method: "post",
+                    url: "apiURL",
+                    data: {
+                        uploadData: this.form
+                    }
+                }).then(response => {
+                    console.log(response, "success");
+                }).catch(error => {
+                    alert(this.form.textCat);
+                    console.log(error, "error");
+                });
             },
             submitAndNext() {
                 this.submit();
