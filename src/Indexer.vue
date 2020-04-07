@@ -7,15 +7,15 @@
                     当前登陆人：{{admin}}
                 </el-col>
                 <el-col span="5">
-                    <el-button icon="el-icon-edit" size="small" class="info-button" @click="drawer = true">帮助
+                    <el-button icon="el-icon-edit" size="small" class="info-button" @click="helpInfoVisible = true">帮助
                     </el-button>
                     <el-button type="primary" plain icon="el-icon-setting" size="small" class="info-button"
-                               @click="drawer = true">设置
+                               @click="helpInfoVisible = true">设置
                     </el-button>
                 </el-col>
                 <el-drawer
-                        title="我是标题"
-                        :visible.sync="drawer"
+                        title="帮助说明"
+                        :visible.sync="helpInfoVisible"
                         :with-header="false">
                     <p>以下是使用说明：</p>
                     <p>表单第一行用于控制图片</p>
@@ -47,31 +47,65 @@
                              @keyup.113.native.prevent="form.textCat = '无文字'"
                              @keyup.114.native.prevent="form.textCat = '纯文字'">
                         <el-form-item label="图片号码">
-                            <el-input v-model="gotoName" class="input-name"></el-input>
+                            <el-input v-model="gotoName" class="input-short" prefix-icon="el-icon-setting"></el-input>
                             <el-button type="primary" @click="goPic">GO !</el-button>
                             <el-button type="primary" plain @click="goPrevPic">上一张</el-button>
                             <el-button type="primary" plain @click="goNextPic">下一张</el-button>
                         </el-form-item>
                         <el-form-item label="文字类型">
-                            <el-radio-group v-model="form.textCat"
-
-                            >
-                                <el-radio border label="图文结合"></el-radio>
-                                <el-radio border label="无文字"></el-radio>
-                                <el-radio border label="纯文字"></el-radio>
+                            <el-radio-group v-model="form.textCat">
+                                <el-radio label="图文结合"></el-radio>
+                                <el-radio label="无文字"></el-radio>
+                                <el-radio label="纯文字"></el-radio>
                             </el-radio-group>
                         </el-form-item>
                         <el-form-item label="角色">
-                            <el-input v-model="form.role"></el-input>
+                            <el-input id="chosenOne" v-model="roleInput" @keyup.enter.native="addRoleTag()"
+                                      class="input-short" prefix-icon="el-icon-s-custom"></el-input>
+                                <el-tag
+                                        v-for="roleTag in form.role"
+                                        :key="roleTag"
+                                        closable
+                                        disable-transitions=false
+                                        @close="closeTag(roleTag,1)"
+                                >{{roleTag}}
+                                </el-tag>
                         </el-form-item>
                         <el-form-item label="情绪">
-                            <el-input v-model="form.emotion"></el-input>
+                            <el-input v-model="emotionInput" @keyup.enter.native="addEmotionTag()"
+                                      class="input-short" prefix-icon="el-icon-magic-stick"></el-input>
+                                <el-tag
+                                        v-for="emotionTag in form.emotion"
+                                        :key="emotionTag"
+                                        closable
+                                        disable-transitions=false
+                                        @close="closeTag(emotionTag, 2)"
+                                >{{emotionTag}}
+                                </el-tag>
                         </el-form-item>
                         <el-form-item label="风格">
-                            <el-input v-model="form.style"></el-input>
+                            <el-input v-model="styleInput" @keyup.enter.native="addStyleTag()"
+                                      class="input-short" prefix-icon="el-icon-lollipop"></el-input>
+                                <el-tag
+                                        v-for="styleTag in form.style"
+                                        :key="styleTag"
+                                        closable
+                                        disable-transitions=false
+                                        @close="closeTag(styleTag, 3)"
+                                >{{styleTag}}
+                                </el-tag>
                         </el-form-item>
                         <el-form-item label="主题">
-                            <el-input v-model="form.topic"></el-input>
+                            <el-input v-model="topicInput" @keyup.enter.native="addTopicTag()"
+                                      class="input-short" prefix-icon="el-icon-s-flag"></el-input>
+                                <el-tag
+                                        v-for="topicTag in form.topic"
+                                        :key="topicTag"
+                                        closable
+                                        disable-transitions=false
+                                        @close="closeTag(topicTag, 4)"
+                                >{{topicTag}}
+                                </el-tag>
                         </el-form-item>
                         <el-form-item label="描述">
                             <el-input type="textarea" v-model="form.description"></el-input>
@@ -79,7 +113,7 @@
                         <el-form-item>
                             <el-button type="primary" @click="submitAndNext">提交 & Next</el-button>
                             <el-button type="primary" plain @click="submit">提交</el-button>
-                            <el-button>重置</el-button>
+                            <el-button @click="reset">重置</el-button>
                         </el-form-item>
                     </el-form>
                 </el-main>
@@ -98,19 +132,23 @@
         data() {
             return {
                 admin: '金笑缘',
-                picName: '0002.jpg',
-                gotoName: '0002',
+                picName: '0001.jpg',
+                gotoName: '0001',
                 picFit: 'cover',
                 form: {
                     name: '请选择图片',
                     textCat: '图文结合',
-                    role: '熊猫头',
-                    emotion: '开心',
-                    style: '洒脱',
-                    topic: '怼人',
+                    role: ['熊猫头', '黄脸'],
+                    emotion: ['开心', '悲伤'],
+                    style: ['洒脱', '奔放'],
+                    topic: ['怼人', '打你'],
                     description: '这是一个表情包这是一个表情包'
                 },
-                drawer: false
+                helpInfoVisible: false,
+                roleInput: '',
+                emotionInput: '',
+                styleInput: '',
+                topicInput: ''
             };
         },
         computed: {
@@ -148,18 +186,96 @@
                 this.picName = newName + '.jpg';
                 this.gotoName = newName;
             },
-            set1() {
-                alert("set1");
-                this.form.textCat = '图文结合';
+            closeTag(tag, flag) {
+                let list = [];
+                switch (flag) {
+                    case 1:
+                        list = this.form.role;
+                        break;
+                    case 2:
+                        list = this.form.emotion;
+                        break;
+                    case 3:
+                        list = this.form.style;
+                        break;
+                    case 4:
+                        list = this.form.topic;
+                        break;
+                    default:
+                }
+                let index = list.indexOf(tag);
+                list.splice(index, 1);
             },
-            set2() {
-                alert("set2");
-                this.form.textCat = '无文字';
+            addRoleTag() {
+                let input = this.roleInput.trim();
+                if (this.form.role.indexOf(input) !== -1) {
+                    alert("重复！");
+                    return;
+                }
+                if (input === '') {
+                    alert("空！");
+                } else {
+                    this.form.role.push(input);
+                }
+                this.roleInput = '';
             },
-            set3() {
-                alert("set3");
-                this.form.textCat = '纯文字';
+            addEmotionTag() {
+                let input = this.emotionInput.trim();
+                if (this.form.emotion.indexOf(input) !== -1) {
+                    alert("重复！");
+                    return;
+                }
+                if (input === '') {
+                    alert("空！");
+                } else {
+                    this.form.emotion.push(input);
+                }
+                this.emotionInput = '';
+            },
+            addStyleTag() {
+                let input = this.styleInput.trim();
+                if (this.form.style.indexOf(input) !== -1) {
+                    alert("重复！");
+                    return;
+                }
+                if (input === '') {
+                    alert("空！");
+                } else {
+                    this.form.style.push(input);
+                }
+                this.styleInput = '';
+            },
+            addTopicTag() {
+                let input = this.topicInput.trim();
+                if (this.form.topic.indexOf(input) !== -1) {
+                    alert("重复！");
+                    return;
+                }
+                if (input === '') {
+                    alert("空！");
+                } else {
+                    this.form.topic.push(input);
+                }
+                this.topicInput = '';
+            },
+            reset() {
+                this.form.role = [];
+                this.form.emotion = [];
+                this.form.style = [];
+                this.form.topic = [];
+                this.form.description = '';
             }
+        },
+        directives: {
+            focus: {
+                inserted: function (el) {
+                    el.focus();
+                }
+            }
+        },
+        mounted(){
+            let chosenOne=document.getElementById('chosenOne')
+            chosenOne.focus()
         }
     }
 </script>
@@ -219,6 +335,18 @@
         background-color: deepskyblue;
     }
 
+    .el-form-item-hasTag {
+        margin-bottom: 10px;
+    }
+
+    .hasTag {
+        margin-bottom: 10px;
+    }
+
+    .el-form-item .el-tag {
+        margin-right: 5px;
+    }
+
     .bqbImg {
         width: 366px;
         margin: 15px;
@@ -235,7 +363,7 @@
         margin-bottom: 10px;
     }
 
-    .input-name {
+    .input-short {
         width: 200px;
         margin-right: 10px;
     }
