@@ -141,11 +141,11 @@
                 form: {
                     name: '请选择图片',
                     textCat: '图文结合',
-                    role: ['熊猫头'],
+                    role: ['猫和老鼠'],
                     emotion: ['开心'],
                     style: ['洒脱'],
-                    topic: ['怼人'],
-                    description: '别复习了一起去玩吧'
+                    topic: ['打人'],
+                    description: '别复习了一起去玩吧！！'
                 },
                 helpInfoVisible: false,
                 roleInput: '',
@@ -172,15 +172,26 @@
         methods: {
             submit() {
                 this.$axios({
-                    method: "post",
-                    url: "apiURL",
-                    data: {
-                        uploadData: this.form
+                    method: "GET",
+                    url: "http://localhost:8888/php/insertPicInfo.php",
+                    params: {
+                        getData: {
+                            picInfo: {
+                                textType: this.form.textCat,
+                                role: this.form.role,
+                                emotion: this.form.emotion,
+                                style: this.form.style,
+                                topic: this.form.topic,
+                                description: this.form.description
+                            },
+                            picName: this.picName
+                        }
                     }
                 }).then(response => {
+                    alert("submit success!");
                     console.log(response, "success");
                 }).catch(error => {
-                    alert(this.form.textCat);
+                    alert("submit failed!");
                     console.log(error, "error");
                 });
             },
