@@ -123,12 +123,15 @@
                             </el-radio-group>
                         </el-form-item>
                         <el-form-item label="角色" v-show="config.visible.role">
-                            <el-autocomplete id="role-input" v-model="input.roleInput"
+                            <!--<el-autocomplete id="role-input" v-model="input.roleInput"
                                              @keyup.enter.native="addRoleTag()"
                                              class="input-short" prefix-icon="el-icon-s-custom"
                                              :fetch-suggestions="querySearch"
                                              @select="addRoleTag"
-                            ></el-autocomplete>
+                            ></el-autocomplete>-->
+                            <el-input id="role-input" v-model="input.roleInput"
+                                             @keyup.enter.native="addRoleTag()"
+                                             class="input-short" prefix-icon="el-icon-s-custom"></el-input>
                             <el-tag
                                     v-for="roleTag in picInfo.role"
                                     :key="roleTag"
