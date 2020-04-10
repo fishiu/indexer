@@ -29,7 +29,7 @@
                 </el-col>
                 <el-col span="5">
                     <el-button icon="el-icon-edit" size="small" class="info-button" show-close="false"
-                               @click="helpInfoVisible = true">热键
+                               @click="helpInfoVisible = true">说明
                     </el-button>
                     <el-button type="primary" plain icon="el-icon-setting" size="small" class="info-button"
                                @click="settingVisible = true">设置
@@ -81,8 +81,17 @@
                         title="帮助说明"
                         :visible.sync="helpInfoVisible"
                         :with-header="false">
-                    <p>以下是使用说明：</p>
-                    <p>表单第一行用于控制图片</p>
+                    <div class="intro">
+                        <h3>使用说明：</h3>
+                        <p class="sub-intro">系统很垃圾，请小心使用，可能数据说没就没了。但是也不用太担心，最多少掉当前正在操作的数据。</p>
+                        <p class="sub-intro">多使用<span>"从数据库同步"</span>按钮，可以确认到底有没有操作成功。</p>
+                        <h4>快捷键说明：</h4>
+                        <p class="sub-intro">所有快捷键均当<span>鼠标焦点在表单中</span>的时候才能使用</p>
+                        <p>提交当前修改并进入下一个：ctrl + enter</p>
+                        <p>上一个：ctrl + [</p>
+                        <p>下一个：ctrl + ]</p>
+                        <p>选择文字类型：F1, F2, F3</p>
+                    </div>
                 </el-drawer>
             </el-row>
         </el-header>
@@ -313,7 +322,6 @@
                             duration: 800
                         });
                         console.log('submit success!', response);
-                        return true;
                     } else {
                         this.$message({
                             message: '更新失败！',
@@ -331,9 +339,8 @@
                 return false;
             },
             submitAndNext() {
-                if (this.submit()) {
-                    this.goNextPic();
-                }
+                this.submit();
+                this.goNextPic();
             },
             nullAlert(nullItem) {
                 this.$alert(nullItem + '的值不可为空！', '空值 T_T', {
@@ -524,7 +531,7 @@
                         console.log('initLogin response fail!')
                     }
                 }).catch(error => {
-                    alert("init fail!");
+                    alert("初始化失败！");
                     console.log(error, "error");
                 });
             },
@@ -553,7 +560,7 @@
                         console.log('login response fail!')
                     }
                 }).catch(error => {
-                    alert("login data upload fail!");
+                    alert("登录信息上传失败！");
                     console.log(error, "error");
                 });
                 this.getInfo();
@@ -561,8 +568,6 @@
             },
             beforeunloadFn(e) {
                 console.log(e);
-                alert("刷新啦！");
-                console.log(this.picName);
                 this.$axios({
                     method: "GET",
                     url: "http://localhost:8888/php/getConfig.php",
@@ -575,12 +580,11 @@
                 }).then(response => {
                     if (response.data['successCode'] === 0) {
                         console.log('upload success!', response);
-                        console.log(response.data);
                     } else {
                         console.log('upload response fail!')
                     }
                 }).catch(error => {
-                    alert("upload data upload fail!");
+                    alert("上传配置失败!");
                     console.log(error, "error");
                 });
             }
@@ -711,5 +715,17 @@
     .login-dialog .el-form-item {
         width: 300px;
         margin: 10px auto;
+    }
+
+    .intro {
+        padding: 20px;
+    }
+
+    .sub-intro {
+        color: #999999;
+    }
+
+    .intro span {
+        color: #0084ff;
     }
 </style>
