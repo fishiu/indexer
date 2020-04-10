@@ -4,15 +4,56 @@
             <el-row gutter="10px" class="header-title">
                 <el-col span="14" class="big-title">表情包标引工具 V 1.0</el-col>
                 <el-col span="5" class="admin-name el-icon-user-solid">
-                    当前登陆人：{{admin}}
+                    当前登陆人：{{config.admin}}
                 </el-col>
                 <el-col span="5">
-                    <el-button icon="el-icon-edit" size="small" class="info-button" @click="helpInfoVisible = true">帮助
+                    <el-button icon="el-icon-edit" size="small" class="info-button" show-close="false">帮助
                     </el-button>
                     <el-button type="primary" plain icon="el-icon-setting" size="small" class="info-button"
-                               @click="helpInfoVisible = true">设置
+                               @click="settingVisible = true">设置
                     </el-button>
                 </el-col>
+                <el-dialog title="设置" :visible.sync="settingVisible" width="500px">
+                    <el-form>
+                        <el-row>
+                            <el-col span="8">
+                                <el-form-item label="文字类型">
+                                    <el-switch v-model="config.visible.textType"></el-switch>
+                                </el-form-item>
+                            </el-col>
+                            <el-col span="8">
+                                <el-form-item label="角色">
+                                    <el-switch v-model="config.visible.role"></el-switch>
+                                </el-form-item>
+                            </el-col>
+                            <el-col span="8">
+                                <el-form-item label="情绪">
+                                    <el-switch v-model="config.visible.emotion"></el-switch>
+                                </el-form-item>
+                            </el-col>
+                        </el-row>
+                        <el-row>
+                            <el-col span="8">
+                                <el-form-item label="风格">
+                                    <el-switch v-model="config.visible.style"></el-switch>
+                                </el-form-item>
+                            </el-col>
+                            <el-col span="8">
+                                <el-form-item label="主题">
+                                    <el-switch v-model="config.visible.topic"></el-switch>
+                                </el-form-item>
+                            </el-col>
+                            <el-col span="8">
+                                <el-form-item label="描述">
+                                    <el-switch v-model="config.visible.description"></el-switch>
+                                </el-form-item>
+                            </el-col>
+                        </el-row>
+                    </el-form>
+                    <div slot="footer" class="dialog-footer">
+                        <el-button type="primary" @click="settingVisible = false">确 定</el-button>
+                    </div>
+                </el-dialog>
                 <el-drawer
                         title="帮助说明"
                         :visible.sync="helpInfoVisible"
@@ -28,45 +69,44 @@
                 <div class="image-container">
                     <el-image class="bqbImg"
                               :src="picUrl"
-                              :fit="picFit"
+                              fit="cover"
                               :preview-src-list="picUrlList"
                               alt="pic"
                     ></el-image>
                     <div class="picTitle">{{picName}}</div>
-                    <div class="picTitle">上次修改：金笑缘</div>
                 </div>
             </el-aside>
 
             <el-container>
                 <el-main>
-                    <el-form ref="form" label-width="80px" label-position="left"
+                    <el-form ref="picInfo" label-width="80px" label-position="left"
                              @keyup.ctrl.enter.native.prevent="submitAndNext"
                              @keyup.ctrl.219.native.prevent="goPrevPic"
                              @keyup.ctrl.221.native.prevent="goNextPic"
-                             @keyup.112.native.prevent="form.textCat = '图文结合'"
-                             @keyup.113.native.prevent="form.textCat = '无文字'"
-                             @keyup.114.native.prevent="form.textCat = '纯文字'">
+                             @keyup.112.native.prevent="picInfo.textType = '图文结合'"
+                             @keyup.113.native.prevent="picInfo.textType = '无文字'"
+                             @keyup.114.native.prevent="picInfo.textType = '纯文字'">
                         <el-form-item label="图片号码">
                             <el-input v-model="gotoName" class="input-short" prefix-icon="el-icon-setting"></el-input>
                             <el-button type="primary" @click="goPic">GO !</el-button>
                             <el-button type="primary" plain @click="goPrevPic">上一张</el-button>
                             <el-button type="primary" plain @click="goNextPic">下一张</el-button>
                         </el-form-item>
-                        <el-form-item label="文字类型">
-                            <el-radio-group v-model="form.textCat">
+                        <el-form-item label="文字类型" v-show="config.visible.textType">
+                            <el-radio-group v-model="picInfo.textType">
                                 <el-radio label="图文结合"></el-radio>
                                 <el-radio label="无文字"></el-radio>
                                 <el-radio label="纯文字"></el-radio>
                             </el-radio-group>
                         </el-form-item>
-                        <el-form-item label="角色">
-                            <el-autocomplete id="chosenOne" v-model="roleInput" @keyup.enter.native="addRoleTag()"
+                        <el-form-item label="角色" v-show="config.visible.role">
+                            <el-autocomplete id="chosenOne" v-model="input.roleInput" @keyup.enter.native="addRoleTag()"
                                              class="input-short" prefix-icon="el-icon-s-custom"
                                              :fetch-suggestions="querySearch"
                                              @select="addRoleTag"
                             ></el-autocomplete>
                             <el-tag
-                                    v-for="roleTag in form.role"
+                                    v-for="roleTag in picInfo.role"
                                     :key="roleTag"
                                     closable
                                     disable-transitions=false
@@ -74,11 +114,11 @@
                             >{{roleTag}}
                             </el-tag>
                         </el-form-item>
-                        <el-form-item label="情绪">
-                            <el-input v-model="emotionInput" @keyup.enter.native="addEmotionTag()"
+                        <el-form-item label="情绪" v-show="config.visible.emotion">
+                            <el-input v-model="input.emotionInput" @keyup.enter.native="addEmotionTag()"
                                       class="input-short" prefix-icon="el-icon-magic-stick"></el-input>
                             <el-tag
-                                    v-for="emotionTag in form.emotion"
+                                    v-for="emotionTag in picInfo.emotion"
                                     :key="emotionTag"
                                     closable
                                     disable-transitions=false
@@ -86,11 +126,11 @@
                             >{{emotionTag}}
                             </el-tag>
                         </el-form-item>
-                        <el-form-item label="风格">
-                            <el-input v-model="styleInput" @keyup.enter.native="addStyleTag()"
+                        <el-form-item label="风格" v-show="config.visible.style">
+                            <el-input v-model="input.styleInput" @keyup.enter.native="addStyleTag()"
                                       class="input-short" prefix-icon="el-icon-lollipop"></el-input>
                             <el-tag
-                                    v-for="styleTag in form.style"
+                                    v-for="styleTag in picInfo.style"
                                     :key="styleTag"
                                     closable
                                     disable-transitions=false
@@ -98,11 +138,11 @@
                             >{{styleTag}}
                             </el-tag>
                         </el-form-item>
-                        <el-form-item label="主题">
-                            <el-input v-model="topicInput" @keyup.enter.native="addTopicTag()"
+                        <el-form-item label="主题" v-show="config.visible.topic">
+                            <el-input v-model="input.topicInput" @keyup.enter.native="addTopicTag()"
                                       class="input-short" prefix-icon="el-icon-s-flag"></el-input>
                             <el-tag
-                                    v-for="topicTag in form.topic"
+                                    v-for="topicTag in picInfo.topic"
                                     :key="topicTag"
                                     closable
                                     disable-transitions=false
@@ -110,13 +150,13 @@
                             >{{topicTag}}
                             </el-tag>
                         </el-form-item>
-                        <el-form-item label="描述">
-                            <el-input type="textarea" v-model="form.description"></el-input>
+                        <el-form-item label="描述" v-show="config.visible.description">
+                            <el-input type="textarea" v-model="picInfo.description"></el-input>
                         </el-form-item>
                         <el-form-item>
                             <el-button type="primary" @click="submitAndNext">提交 & Next</el-button>
-                            <el-button type="primary" plain @click="submit">提交</el-button>
-                            <el-button @click="reset">重置</el-button>
+                            <el-button type="primary" @click="submit">提交</el-button>
+                            <el-button @click="getInfo">从数据库同步</el-button>
                         </el-form-item>
                     </el-form>
                 </el-main>
@@ -134,25 +174,36 @@
         name: 'Indexer',
         data() {
             return {
-                admin: '金笑缘',
-                picName: '0001.jpg',
-                gotoName: '0001',
-                picFit: 'cover',
-                form: {
-                    name: '请选择图片',
-                    textCat: '图文结合',
-                    role: ['猫和老鼠'],
-                    emotion: ['开心'],
-                    style: ['洒脱'],
-                    topic: ['打人'],
-                    description: '别复习了一起去玩吧！！'
+                config: {
+                    admin: '金笑缘',
+                    visible: {
+                        textType: true,
+                        role: true,
+                        emotion: true,
+                        style: true,
+                        topic: true,
+                        description: true
+                    }
                 },
-                helpInfoVisible: false,
-                roleInput: '',
-                emotionInput: '',
-                styleInput: '',
-                topicInput: '',
-                ac: {
+                picName: '0001.jpg',
+                picInfo: {
+                    textType: '',
+                    role: [],
+                    emotion: [],
+                    style: [],
+                    topic: [],
+                    description: ''
+                },
+                input: {
+                    roleInput: '', // 接下来四个是输入信息
+                    emotionInput: '',
+                    styleInput: '',
+                    topicInput: '',
+                },
+                gotoName: '0001', // 下一个图片的输入编号
+                helpInfoVisible: false, // 是否显示帮助抽屉
+                settingVisible: false,
+                ac: { // 自动补全信息的数据
                     roles: [
                         {value: '猫和老鼠'},
                         {value: '熊猫头'},
@@ -170,28 +221,62 @@
             }
         },
         methods: {
+            getInfo() {
+                this.$axios({
+                    method: "GET",
+                    url: "http://localhost:8888/php/getPicInfo.php",
+                    params: {
+                        getData: {
+                            picName: this.picName
+                        }
+                    }
+                }).then(response => {
+                    if (response.data['successCode'] === 0) {
+                        this.picInfo = response.data['data']['picInfo'];
+                        console.log(this.picInfo)
+                    } else {
+                        console.log('getInfo response fail!')
+                    }
+                }).catch(error => {
+                    this.$message({
+                        message: '从数据库获取数据失败！',
+                        type: 'error',
+                        duration: 0,
+                        showClose: true
+                    });
+                    console.log(error, "error");
+                });
+            },
             submit() {
                 this.$axios({
                     method: "GET",
                     url: "http://localhost:8888/php/insertPicInfo.php",
                     params: {
                         getData: {
-                            picInfo: {
-                                textType: this.form.textCat,
-                                role: this.form.role,
-                                emotion: this.form.emotion,
-                                style: this.form.style,
-                                topic: this.form.topic,
-                                description: this.form.description
-                            },
+                            picInfo: this.picInfo,
                             picName: this.picName
                         }
                     }
                 }).then(response => {
-                    alert("submit success!");
-                    console.log(response, "success");
+                    if (response.data['successCode'] === 0) {
+                        this.$message({
+                            message: '更新成功！',
+                            type: 'success',
+                            duration: 800
+                        });
+                        console.log('submit success!');
+                        return;
+                    } else {
+                        this.$message({
+                            message: '更新失败！',
+                            type: 'error',
+                            duration: 0,
+                            showClose: true
+                        });
+                        console.log('submit response fail!')
+                    }
                 }).catch(error => {
-                    alert("submit failed!");
+                    alert("submit fail!");
                     console.log(error, "error");
                 });
             },
@@ -201,37 +286,58 @@
             },
             goPrevPic() {
                 let oldName = parseInt(this.picName.slice(0, 4));
+                if (oldName === 1) {
+                    this.$message({
+                        message: '不存在上一个！',
+                        type: 'warning',
+                        duration: 800,
+                    });
+                    return;
+                }
                 oldName--;
                 let newName = makeName(oldName);
                 this.picName = newName + '.jpg';
                 this.gotoName = newName;
+                this.getInfo();
+                this.setFocus();
             },
             goNextPic() {
                 let oldName = parseInt(this.picName.slice(0, 4));
+                if (oldName === 5) {
+                    this.$message({
+                        message: '不存在下一个！',
+                        type: 'warning',
+                        duration: 800,
+                    });
+                    return;
+                }
                 oldName++;
                 let newName = makeName(oldName);
                 this.picName = newName + '.jpg';
                 this.gotoName = newName;
+                this.getInfo();
+                this.setFocus();
             },
             goPic() {
                 let newName = makeName(parseInt(this.gotoName));
                 this.picName = newName + '.jpg';
                 this.gotoName = newName;
+                this.getInfo();
             },
             closeTag(tag, flag) {
                 let list = [];
                 switch (flag) {
                     case 1:
-                        list = this.form.role;
+                        list = this.picInfo.role;
                         break;
                     case 2:
-                        list = this.form.emotion;
+                        list = this.picInfo.emotion;
                         break;
                     case 3:
-                        list = this.form.style;
+                        list = this.picInfo.style;
                         break;
                     case 4:
-                        list = this.form.topic;
+                        list = this.picInfo.topic;
                         break;
                     default:
                 }
@@ -239,63 +345,63 @@
                 list.splice(index, 1);
             },
             addRoleTag() {
-                let input = this.roleInput.trim();
-                if (this.form.role.indexOf(input) !== -1) {
+                let input = this.input.roleInput.trim();
+                if (this.picInfo.role.indexOf(input) !== -1) {
                     alert("重复！");
                     return;
                 }
                 if (input === '') {
                     alert("空！");
                 } else {
-                    this.form.role.push(input);
+                    this.picInfo.role.push(input);
                 }
-                this.roleInput = '';
+                this.input.roleInput = '';
             },
             addEmotionTag() {
-                let input = this.emotionInput.trim();
-                if (this.form.emotion.indexOf(input) !== -1) {
+                let input = this.input.emotionInput.trim();
+                if (this.picInfo.emotion.indexOf(input) !== -1) {
                     alert("重复！");
                     return;
                 }
                 if (input === '') {
                     alert("空！");
                 } else {
-                    this.form.emotion.push(input);
+                    this.picInfo.emotion.push(input);
                 }
-                this.emotionInput = '';
+                this.input.emotionInput = '';
             },
             addStyleTag() {
-                let input = this.styleInput.trim();
-                if (this.form.style.indexOf(input) !== -1) {
+                let input = this.input.styleInput.trim();
+                if (this.picInfo.style.indexOf(input) !== -1) {
                     alert("重复！");
                     return;
                 }
                 if (input === '') {
                     alert("空！");
                 } else {
-                    this.form.style.push(input);
+                    this.picInfo.style.push(input);
                 }
-                this.styleInput = '';
+                this.input.styleInput = '';
             },
             addTopicTag() {
-                let input = this.topicInput.trim();
-                if (this.form.topic.indexOf(input) !== -1) {
+                let input = this.input.topicInput.trim();
+                if (this.picInfo.topic.indexOf(input) !== -1) {
                     alert("重复！");
                     return;
                 }
                 if (input === '') {
                     alert("空！");
                 } else {
-                    this.form.topic.push(input);
+                    this.picInfo.topic.push(input);
                 }
-                this.topicInput = '';
+                this.input.topicInput = '';
             },
             reset() {
-                this.form.role = [];
-                this.form.emotion = [];
-                this.form.style = [];
-                this.form.topic = [];
-                this.form.description = '';
+                this.picInfo.role = [];
+                this.picInfo.emotion = [];
+                this.picInfo.style = [];
+                this.picInfo.topic = [];
+                this.picInfo.description = '';
             },
             createFilter(queryString) {
                 return (role) => {
@@ -306,6 +412,10 @@
                 let roles = this.ac.roles;
                 let res = queryString ? roles.filter(this.createFilter((queryString))) : roles;
                 cb(res);
+            },
+            setFocus() {
+                let chosenOne = document.getElementById('chosenOne');
+                chosenOne.focus();
             }
         },
         directives: {
@@ -316,8 +426,8 @@
             }
         },
         mounted() {
-            let chosenOne = document.getElementById('chosenOne')
-            chosenOne.focus()
+            this.getInfo();
+            this.setFocus();
         }
     }
 </script>
@@ -402,11 +512,21 @@
 
     .picTitle {
         text-align: center;
-        margin-bottom: 10px;
+        margin-bottom: 20px;
+        color: #606266;
+        letter-spacing: 3px;
     }
 
     .input-short {
         width: 200px;
         margin-right: 10px;
+    }
+
+    .el-dialog .el-form-item {
+        margin: 10px auto;
+    }
+
+    .el-dialog__body {
+        padding: 10px 20px 10px 60px;
     }
 </style>
