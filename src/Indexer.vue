@@ -35,7 +35,8 @@
                                @click="settingVisible = true">设置
                     </el-button>
                 </el-col>
-                <el-dialog class="config-dialog" title="选择标引项目" :visible.sync="settingVisible" width="500px" show-close="false">
+                <el-dialog class="config-dialog" title="选择标引项目" :visible.sync="settingVisible" width="500px"
+                           show-close="false">
                     <el-form>
                         <el-row>
                             <el-col span="8">
@@ -130,8 +131,8 @@
                                              @select="addRoleTag"
                             ></el-autocomplete>-->
                             <el-input id="role-input" v-model="input.roleInput"
-                                             @keyup.enter.native="addRoleTag()"
-                                             class="input-short" prefix-icon="el-icon-s-custom"></el-input>
+                                      @keyup.enter.native="addRoleTag()"
+                                      class="input-short" prefix-icon="el-icon-s-custom"></el-input>
                             <el-tag
                                     v-for="roleTag in picInfo.role"
                                     :key="roleTag"
@@ -214,7 +215,7 @@
                         description: true
                     }
                 },
-                picName: '0001.jpg',
+                picName: '',
                 picInfo: {
                     textType: '',
                     role: [],
@@ -311,8 +312,8 @@
                             type: 'success',
                             duration: 800
                         });
-                        console.log('submit success!');
-                        return;
+                        console.log('submit success!', response);
+                        return true;
                     } else {
                         this.$message({
                             message: '更新失败！',
@@ -326,10 +327,13 @@
                     alert("submit fail!");
                     console.log(error, "error");
                 });
+
+                return false;
             },
             submitAndNext() {
-                this.submit();
-                this.goNextPic();
+                if (this.submit()) {
+                    this.goNextPic();
+                }
             },
             nullAlert(nullItem) {
                 this.$alert(nullItem + '的值不可为空！', '空值 T_T', {
@@ -444,9 +448,7 @@
                     this.tagRepeat();
                     return;
                 }
-                if (input === '') {
-                    this.tagNull();
-                } else {
+                if (input !== '') {
                     this.picInfo.topic.push(input);
                 }
                 this.input.topicInput = '';
@@ -508,8 +510,10 @@
                             let config = response.data['data']['config'];
                             this.config.admin = config['admin'];
                             this.config.visible = config['visible'];
-                            if(config['lastPicName']) {
-                                this.picName = config['lastPicName'];
+                            if (response.data['data']['lastPic']) {
+                                this.picName = response.data['data']['lastPic'];
+                            } else {
+                                this.picName = '0001.jpg';
                             }
                             this.getInfo();
                             this.setFocus();
@@ -555,12 +559,30 @@
                 this.getInfo();
                 this.setFocus();
             },
-            uploadConfig() {
+            beforeunloadFn(e) {
+                console.log(e);
+                alert("刷新啦！");
+                console.log(this.picName);
                 this.$axios({
                     method: "GET",
                     url: "http://localhost:8888/php/getConfig.php",
-
-                })
+                    params: {
+                        getData: {
+                            config: this.config,
+                            lastPic: this.picName
+                        }
+                    }
+                }).then(response => {
+                    if (response.data['successCode'] === 0) {
+                        console.log('upload success!', response);
+                        console.log(response.data);
+                    } else {
+                        console.log('upload response fail!')
+                    }
+                }).catch(error => {
+                    alert("upload data upload fail!");
+                    console.log(error, "error");
+                });
             }
         },
         directives: {
@@ -572,6 +594,10 @@
         },
         mounted() {
             this.init();
+            window.addEventListener('beforeunload', e => this.beforeunloadFn(e))
+        },
+        destroyed() {
+            window.removeEventListener('beforeunload', e => this.beforeunloadFn(e))
         }
     }
 </script>
