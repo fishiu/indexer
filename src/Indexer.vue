@@ -229,7 +229,7 @@
                 gotoName: '0001', // 下一个图片的输入编号
                 helpInfoVisible: false, // 是否显示帮助抽屉
                 settingVisible: false,
-                loginVisible: true,
+                loginVisible: false,
                 ac: { // 自动补全信息的数据
                     roles: [
                         {value: '猫和老鼠'},
@@ -501,11 +501,13 @@
                 }).then(response => {
                     if (response.data['successCode'] === 0) {
                         console.log('init success: ', response.data);
-                        if (response.data['data']['hasLogged']) {
+                        if (response.data['data']['hasLogged'] === true) {
                             let config = response.data['data']['config'];
                             this.config.admin = config['admin'];
                             this.config.visible = config['visible'];
-                            this.picName = config['lastPicName'];
+                            if(config['lastPicName']) {
+                                this.picName = config['lastPicName'];
+                            }
                             this.getInfo();
                             this.setFocus();
                         } else {
@@ -549,6 +551,13 @@
                 });
                 this.getInfo();
                 this.setFocus();
+            },
+            uploadConfig() {
+                this.$axios({
+                    method: "GET",
+                    url: "http://localhost:8888/php/getConfig.php",
+
+                })
             }
         },
         directives: {
