@@ -88,6 +88,7 @@
                         <h4>快捷键说明：</h4>
                         <p class="sub-intro">所有快捷键均当<span>鼠标焦点在表单中</span>的时候才能使用</p>
                         <p>提交当前修改并进入下一个：ctrl + enter</p>
+                        <p>新增标签：enter</p>
                         <p>上一个：ctrl + [</p>
                         <p>下一个：ctrl + ]</p>
                         <p>选择文字类型：F1, F2, F3</p>
@@ -264,7 +265,7 @@
             getInfo() {
                 this.$axios({
                     method: "GET",
-                    url: "http://localhost:8888/php/getPicInfo.php",
+                    url: "./php/getPicInfo.php",
                     params: {
                         getData: {
                             picName: this.picName
@@ -307,7 +308,7 @@
                 }
                 this.$axios({
                     method: "GET",
-                    url: "http://localhost:8888/php/insertPicInfo.php",
+                    url: "./php/insertPicInfo.php",
                     params: {
                         getData: {
                             picInfo: this.picInfo,
@@ -366,7 +367,7 @@
             },
             goNextPic() {
                 let oldName = parseInt(this.picName.slice(0, 4));
-                if (oldName === 5) {
+                if (oldName === 4000) {
                     this.$message({
                         message: '不存在下一个！',
                         type: 'warning',
@@ -383,7 +384,7 @@
             },
             goPic() {
                 let gotoNum = parseInt(this.gotoName);
-                if (gotoNum >= 1 && gotoNum <= 5) {
+                if (gotoNum >= 1 && gotoNum <= 4000) {
                     let newName = makeName(gotoNum);
                     this.picName = newName + '.jpg';
                     this.gotoName = newName;
@@ -509,7 +510,7 @@
                 // 判断是否登录过，如果是加载配置
                 this.$axios({
                     method: "GET",
-                    url: "http://localhost:8888/php/init.php",
+                    url: "./php/init.php",
                 }).then(response => {
                     if (response.data['successCode'] === 0) {
                         console.log('init success: ', response.data);
@@ -547,7 +548,7 @@
                 }
                 this.$axios({
                     method: "GET",
-                    url: "http://localhost:8888/php/login.php",
+                    url: "./php/login.php",
                     params: {
                         getData: {
                             admin: this.config.admin
@@ -570,7 +571,7 @@
                 console.log(e);
                 this.$axios({
                     method: "GET",
-                    url: "http://localhost:8888/php/getConfig.php",
+                    url: "./php/getConfig.php",
                     params: {
                         getData: {
                             config: this.config,
