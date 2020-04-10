@@ -87,7 +87,7 @@
                              @keyup.113.native.prevent="picInfo.textType = '无文字'"
                              @keyup.114.native.prevent="picInfo.textType = '纯文字'">
                         <el-form-item label="图片号码">
-                            <el-input v-model="gotoName" class="input-short" prefix-icon="el-icon-setting"></el-input>
+                            <el-input v-model="gotoName" class="input-short" prefix-icon="el-icon-setting" @keyup.enter.native="goPic"></el-input>
                             <el-button type="primary" @click="goPic">GO !</el-button>
                             <el-button type="primary" plain @click="goPrevPic">上一张</el-button>
                             <el-button type="primary" plain @click="goNextPic">下一张</el-button>
@@ -100,7 +100,7 @@
                             </el-radio-group>
                         </el-form-item>
                         <el-form-item label="角色" v-show="config.visible.role">
-                            <el-autocomplete id="chosenOne" v-model="input.roleInput" @keyup.enter.native="addRoleTag()"
+                            <el-autocomplete id="role-input" v-model="input.roleInput" @keyup.enter.native="addRoleTag()"
                                              class="input-short" prefix-icon="el-icon-s-custom"
                                              :fetch-suggestions="querySearch"
                                              @select="addRoleTag"
@@ -115,7 +115,7 @@
                             </el-tag>
                         </el-form-item>
                         <el-form-item label="情绪" v-show="config.visible.emotion">
-                            <el-input v-model="input.emotionInput" @keyup.enter.native="addEmotionTag()"
+                            <el-input id="emotion-input" v-model="input.emotionInput" @keyup.enter.native="addEmotionTag()"
                                       class="input-short" prefix-icon="el-icon-magic-stick"></el-input>
                             <el-tag
                                     v-for="emotionTag in picInfo.emotion"
@@ -126,7 +126,7 @@
                             >{{emotionTag}}
                             </el-tag>
                         </el-form-item>
-                        <el-form-item label="风格" v-show="config.visible.style">
+                        <el-form-item id="style-input" label="风格" v-show="config.visible.style">
                             <el-input v-model="input.styleInput" @keyup.enter.native="addStyleTag()"
                                       class="input-short" prefix-icon="el-icon-lollipop"></el-input>
                             <el-tag
@@ -138,7 +138,7 @@
                             >{{styleTag}}
                             </el-tag>
                         </el-form-item>
-                        <el-form-item label="主题" v-show="config.visible.topic">
+                        <el-form-item id="topic-input" label="主题" v-show="config.visible.topic">
                             <el-input v-model="input.topicInput" @keyup.enter.native="addTopicTag()"
                                       class="input-short" prefix-icon="el-icon-s-flag"></el-input>
                             <el-tag
@@ -151,7 +151,7 @@
                             </el-tag>
                         </el-form-item>
                         <el-form-item label="描述" v-show="config.visible.description">
-                            <el-input type="textarea" v-model="picInfo.description"></el-input>
+                            <el-input id="description-input" type="textarea" v-model="picInfo.description"></el-input>
                         </el-form-item>
                         <el-form-item>
                             <el-button type="primary" @click="submitAndNext">提交 & Next</el-button>
@@ -233,6 +233,7 @@
                 }).then(response => {
                     if (response.data['successCode'] === 0) {
                         this.picInfo = response.data['data']['picInfo'];
+                        this.gotoName = this.picName.substr(0, 4);
                         console.log(this.picInfo)
                     } else {
                         console.log('getInfo response fail!')
@@ -248,6 +249,19 @@
                 });
             },
             submit() {
+                if (this.config.visible.role && this.picInfo.role.length === 0) {
+                    this.nullAlert('角色');
+                    return;
+                } else if (this.config.visible.emotion && this.picInfo.emotion.length === 0) {
+                    this.nullAlert('情绪');
+                    return;
+                } else if (this.config.visible.style && this.picInfo.style.length === 0) {
+                    this.nullAlert('风格');
+                    return;
+                } else if (this.config.visible.topic && this.picInfo.topic.length === 0) {
+                    this.nullAlert('主题');
+                    return;
+                }
                 this.$axios({
                     method: "GET",
                     url: "http://localhost:8888/php/insertPicInfo.php",
@@ -284,6 +298,11 @@
                 this.submit();
                 this.goNextPic();
             },
+            nullAlert(nullItem) {
+                this.$alert(nullItem + '的值不可为空！', '空值警告', {
+                    confirmButtonText: '确定'
+                });
+            },
             goPrevPic() {
                 let oldName = parseInt(this.picName.slice(0, 4));
                 if (oldName === 1) {
@@ -319,10 +338,19 @@
                 this.setFocus();
             },
             goPic() {
-                let newName = makeName(parseInt(this.gotoName));
-                this.picName = newName + '.jpg';
-                this.gotoName = newName;
-                this.getInfo();
+                let gotoNum = parseInt(this.gotoName);
+                if (gotoNum >= 1 && gotoNum <= 5) {
+                    let newName = makeName(gotoNum);
+                    this.picName = newName + '.jpg';
+                    this.gotoName = newName;
+                    this.getInfo();
+                } else {
+                    this.$message({
+                        message: '不存在此图片！',
+                        type: 'warning',
+                        duration: 800,
+                    });
+                }
             },
             closeTag(tag, flag) {
                 let list = [];
@@ -396,13 +424,13 @@
                 }
                 this.input.topicInput = '';
             },
-            reset() {
-                this.picInfo.role = [];
-                this.picInfo.emotion = [];
-                this.picInfo.style = [];
-                this.picInfo.topic = [];
-                this.picInfo.description = '';
-            },
+            // reset() {
+            //     this.picInfo.role = [];
+            //     this.picInfo.emotion = [];
+            //     this.picInfo.style = [];
+            //     this.picInfo.topic = [];
+            //     this.picInfo.description = '';
+            // },
             createFilter(queryString) {
                 return (role) => {
                     return (role.value.toLowerCase().indexOf(queryString.toLowerCase()) === 0);
@@ -414,8 +442,25 @@
                 cb(res);
             },
             setFocus() {
-                let chosenOne = document.getElementById('chosenOne');
-                chosenOne.focus();
+                let firstItem = this.getFirstVisible();
+                if (!firstItem) {
+                    return;
+                }
+                let id = firstItem + '-input';
+                document.getElementById(id).focus();
+            },
+            getFirstVisible() { // 获取第一个在页面上的输入
+                let el = '';
+                if (this.config.visible.role) {
+                    el = 'role';
+                } else if (this.config.visible.emotion) {
+                    el = 'emotion';
+                } else if (this.config.visible.style) {
+                    el = 'style';
+                } else if (this.config.visible.topic) {
+                    el = 'topic';
+                }
+                return el;
             }
         },
         directives: {
