@@ -1,19 +1,41 @@
 <template>
     <el-container class="root-container">
+        <el-dialog
+                title="表情包标引工具"
+                class="login-dialog"
+                :visible.sync="loginVisible"
+                :fullscreen="true"
+                :close-on-click-modal="false"
+                :close-on-press-escape="false"
+                :show-close="false"
+                center>
+            <el-form>
+                <el-form-item label="你的名字">
+                    <el-input v-model="config.admin"></el-input>
+                </el-form-item>
+                <el-form-item label="口令">
+                    <el-input v-model="password"></el-input>
+                </el-form-item>
+            </el-form>
+            <span slot="footer" class="dialog-footer">
+                <el-button type="primary" @click="login">登 录</el-button>
+            </span>
+        </el-dialog>
         <el-header>
             <el-row gutter="10px" class="header-title">
-                <el-col span="14" class="big-title">表情包标引工具 V 1.0</el-col>
+                <el-col span="14" class="big-title">表情包标引 v1</el-col>
                 <el-col span="5" class="admin-name el-icon-user-solid">
-                    当前登陆人：{{config.admin}}
+                    当前登录人：{{config.admin}}
                 </el-col>
                 <el-col span="5">
-                    <el-button icon="el-icon-edit" size="small" class="info-button" show-close="false">帮助
+                    <el-button icon="el-icon-edit" size="small" class="info-button" show-close="false"
+                               @click="helpInfoVisible = true">热键
                     </el-button>
                     <el-button type="primary" plain icon="el-icon-setting" size="small" class="info-button"
                                @click="settingVisible = true">设置
                     </el-button>
                 </el-col>
-                <el-dialog title="设置" :visible.sync="settingVisible" width="500px">
+                <el-dialog class="config-dialog" title="选择标引项目" :visible.sync="settingVisible" width="500px" show-close="false">
                     <el-form>
                         <el-row>
                             <el-col span="8">
@@ -80,14 +102,15 @@
             <el-container>
                 <el-main>
                     <el-form ref="picInfo" label-width="80px" label-position="left"
-                             @keyup.ctrl.enter.native.prevent="submitAndNext"
                              @keyup.ctrl.219.native.prevent="goPrevPic"
                              @keyup.ctrl.221.native.prevent="goNextPic"
+                             @keyup.ctrl.enter.native.prevent="submitAndNext"
                              @keyup.112.native.prevent="picInfo.textType = '图文结合'"
                              @keyup.113.native.prevent="picInfo.textType = '无文字'"
                              @keyup.114.native.prevent="picInfo.textType = '纯文字'">
                         <el-form-item label="图片号码">
-                            <el-input v-model="gotoName" class="input-short" prefix-icon="el-icon-setting" @keyup.enter.native="goPic"></el-input>
+                            <el-input v-model="gotoName" class="input-short" prefix-icon="el-icon-setting"
+                                      @keyup.enter.native="goPic"></el-input>
                             <el-button type="primary" @click="goPic">GO !</el-button>
                             <el-button type="primary" plain @click="goPrevPic">上一张</el-button>
                             <el-button type="primary" plain @click="goNextPic">下一张</el-button>
@@ -100,7 +123,8 @@
                             </el-radio-group>
                         </el-form-item>
                         <el-form-item label="角色" v-show="config.visible.role">
-                            <el-autocomplete id="role-input" v-model="input.roleInput" @keyup.enter.native="addRoleTag()"
+                            <el-autocomplete id="role-input" v-model="input.roleInput"
+                                             @keyup.enter.native="addRoleTag()"
                                              class="input-short" prefix-icon="el-icon-s-custom"
                                              :fetch-suggestions="querySearch"
                                              @select="addRoleTag"
@@ -115,7 +139,8 @@
                             </el-tag>
                         </el-form-item>
                         <el-form-item label="情绪" v-show="config.visible.emotion">
-                            <el-input id="emotion-input" v-model="input.emotionInput" @keyup.enter.native="addEmotionTag()"
+                            <el-input id="emotion-input" v-model="input.emotionInput"
+                                      @keyup.enter.native="addEmotionTag()"
                                       class="input-short" prefix-icon="el-icon-magic-stick"></el-input>
                             <el-tag
                                     v-for="emotionTag in picInfo.emotion"
@@ -174,8 +199,9 @@
         name: 'Indexer',
         data() {
             return {
+                password: '',
                 config: {
-                    admin: '金笑缘',
+                    admin: '',
                     visible: {
                         textType: true,
                         role: true,
@@ -203,6 +229,7 @@
                 gotoName: '0001', // 下一个图片的输入编号
                 helpInfoVisible: false, // 是否显示帮助抽屉
                 settingVisible: false,
+                loginVisible: true,
                 ac: { // 自动补全信息的数据
                     roles: [
                         {value: '猫和老鼠'},
@@ -249,7 +276,10 @@
                 });
             },
             submit() {
-                if (this.config.visible.role && this.picInfo.role.length === 0) {
+                if (this.config.visible.textType && !this.picInfo.textType) {
+                    this.nullAlert('文字类型');
+                    return;
+                } else if (this.config.visible.role && this.picInfo.role.length === 0) {
                     this.nullAlert('角色');
                     return;
                 } else if (this.config.visible.emotion && this.picInfo.emotion.length === 0) {
@@ -299,7 +329,7 @@
                 this.goNextPic();
             },
             nullAlert(nullItem) {
-                this.$alert(nullItem + '的值不可为空！', '空值警告', {
+                this.$alert(nullItem + '的值不可为空！', '空值 T_T', {
                     confirmButtonText: '确定'
                 });
             },
@@ -375,12 +405,10 @@
             addRoleTag() {
                 let input = this.input.roleInput.trim();
                 if (this.picInfo.role.indexOf(input) !== -1) {
-                    alert("重复！");
+                    this.tagRepeat();
                     return;
                 }
-                if (input === '') {
-                    alert("空！");
-                } else {
+                if (input !== '') {
                     this.picInfo.role.push(input);
                 }
                 this.input.roleInput = '';
@@ -388,12 +416,10 @@
             addEmotionTag() {
                 let input = this.input.emotionInput.trim();
                 if (this.picInfo.emotion.indexOf(input) !== -1) {
-                    alert("重复！");
+                    this.tagRepeat();
                     return;
                 }
-                if (input === '') {
-                    alert("空！");
-                } else {
+                if (input !== '') {
                     this.picInfo.emotion.push(input);
                 }
                 this.input.emotionInput = '';
@@ -401,12 +427,10 @@
             addStyleTag() {
                 let input = this.input.styleInput.trim();
                 if (this.picInfo.style.indexOf(input) !== -1) {
-                    alert("重复！");
+                    this.tagRepeat();
                     return;
                 }
-                if (input === '') {
-                    alert("空！");
-                } else {
+                if (input !== '') {
                     this.picInfo.style.push(input);
                 }
                 this.input.styleInput = '';
@@ -414,11 +438,11 @@
             addTopicTag() {
                 let input = this.input.topicInput.trim();
                 if (this.picInfo.topic.indexOf(input) !== -1) {
-                    alert("重复！");
+                    this.tagRepeat();
                     return;
                 }
                 if (input === '') {
-                    alert("空！");
+                    this.tagNull();
                 } else {
                     this.picInfo.topic.push(input);
                 }
@@ -461,6 +485,70 @@
                     el = 'topic';
                 }
                 return el;
+            },
+            tagRepeat() {
+                this.$message({
+                    message: '重复的标签！',
+                    type: 'warning',
+                    duration: 800,
+                });
+            },
+            init() {
+                // 判断是否登录过，如果是加载配置
+                this.$axios({
+                    method: "GET",
+                    url: "http://localhost:8888/php/init.php",
+                }).then(response => {
+                    if (response.data['successCode'] === 0) {
+                        console.log('init success: ', response.data);
+                        if (response.data['data']['hasLogged']) {
+                            let config = response.data['data']['config'];
+                            this.config.admin = config['admin'];
+                            this.config.visible = config['visible'];
+                            this.picName = config['lastPicName'];
+                            this.getInfo();
+                            this.setFocus();
+                        } else {
+                            this.loginVisible = true;
+                        }
+                    } else {
+                        console.log('initLogin response fail!')
+                    }
+                }).catch(error => {
+                    alert("init fail!");
+                    console.log(error, "error");
+                });
+            },
+            login() {
+                if (this.password === 'isrbqb') {
+                    // todo 以后改成哈希
+                    this.loginVisible = false;
+                    this.$message({
+                        message: 'Welcome！',
+                        type: 'success',
+                        duration: 2000,
+                    });
+                }
+                this.$axios({
+                    method: "GET",
+                    url: "http://localhost:8888/php/login.php",
+                    params: {
+                        getData: {
+                            admin: this.config.admin
+                        }
+                    }
+                }).then(response => {
+                    if (response.data['successCode'] === 0) {
+                        console.log('login success!', response);
+                    } else {
+                        console.log('login response fail!')
+                    }
+                }).catch(error => {
+                    alert("login data upload fail!");
+                    console.log(error, "error");
+                });
+                this.getInfo();
+                this.setFocus();
             }
         },
         directives: {
@@ -471,8 +559,7 @@
             }
         },
         mounted() {
-            this.getInfo();
-            this.setFocus();
+            this.init();
         }
     }
 </script>
@@ -567,11 +654,24 @@
         margin-right: 10px;
     }
 
-    .el-dialog .el-form-item {
+    .config-dialog .el-form-item {
         margin: 10px auto;
     }
 
-    .el-dialog__body {
+    .config-dialog .el-dialog__body {
         padding: 10px 20px 10px 60px;
+    }
+
+    .login-dialog .el-dialog__body {
+        padding: 20px 450px 40px 450px;
+    }
+
+    .login-dialog .el-dialog__header {
+        margin-top: 100px;
+    }
+
+    .login-dialog .el-form-item {
+        width: 300px;
+        margin: 10px auto;
     }
 </style>

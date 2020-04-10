@@ -1,24 +1,19 @@
-# indexer
+## 信存检表情包标引工具
 
-## Project setup
-```
-npm install
-```
+### 使用说明
 
-### Compiles and hot-reloads for development
-```
-npm run serve
-```
+- 先打开 [网站](leverest.xyz)，然后登陆（为了保存一些用户设置）
+- 点击设置按钮，选择要标引的项目
+- 点击热键按钮，可以查看快捷键说明
+- 快捷键【注意，所有快捷键均当鼠标焦点在表单中的时候才能使用（刷新或切换图片后会自动聚焦到第一个输入框）】
+  - 提交当前修改并进入下一个：`ctrl + enter`
+  - 上一个：`ctrl + [`
+  - 下一个：`ctrl + ]`
+  - 确定文字类型：`F1, F2, F3`
+  - 选择自动提示
 
-### Compiles and minifies for production
-```
-npm run build
-```
+### 设计思路
+第一次用Vue写前端，前后端分离真的舒服（也是第一次用HHKB写代码，真的舒服）
 
-### Lints and fixes files
-```
-npm run lint
-```
-
-### Customize configuration
-See [Configuration Reference](https://cli.vuejs.org/config/).
+- 所有表情包数据存在数据库，表情包本身存在本地图片文件夹
+- 前端刷新之后从数据库读取图片信息并显示，信息修改后提交给后端写数据库（为了简单，直接删掉旧数据，插入新数据）
